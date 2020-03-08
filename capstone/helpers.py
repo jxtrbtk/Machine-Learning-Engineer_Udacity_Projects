@@ -1,0 +1,716 @@
+import numpy as np
+import pandas as pd
+
+
+# Columnns in the documentations 
+# corrected if a columns name match, then the name from documentation is in comments in front
+# i.e. "SOHO_KZ",                   # "SOHO_FLAG",
+
+COLS_DOCUMENTATION = [
+"AGER_TYP",
+"ALTERSKATEGORIE_GROB",
+"ANREDE_KZ",
+"CJT_GESAMTTYP",
+"FINANZ_MINIMALIST",
+"FINANZ_SPARER",
+"FINANZ_VORSORGER",
+"FINANZ_ANLEGER",
+"FINANZ_UNAUFFAELLIGER",
+"FINANZ_HAUSBAUER",
+"FINANZTYP",
+"GEBURTSJAHR",
+"GFK_URLAUBERTYP",
+"GREEN_AVANTGARDE",
+"HEALTH_TYP",
+"LP_LEBENSPHASE_FEIN",
+"LP_LEBENSPHASE_GROB",
+"LP_FAMILIE_FEIN",
+"LP_FAMILIE_GROB",
+"LP_STATUS_FEIN",
+"LP_STATUS_GROB",
+"NATIONALITAET_KZ",
+"PRAEGENDE_JUGENDJAHRE",
+"RETOURTYP_BK_S",
+"SEMIO_SOZ",
+"SEMIO_FAM",
+"SEMIO_REL",
+"SEMIO_MAT",
+"SEMIO_VERT",
+"SEMIO_LUST",
+"SEMIO_ERL",
+"SEMIO_KULT",
+"SEMIO_RAT",
+"SEMIO_KRIT",
+"SEMIO_DOM",
+"SEMIO_KAEM",
+"SEMIO_PFLICHT",
+"SEMIO_TRADV",
+"SHOPPER_TYP",
+"SOHO_KZ",                   # "SOHO_FLAG",
+"TITEL_KZ",
+"VERS_TYP",
+"ZABEOTYP",
+"ALTER_HH",
+"ANZ_PERSONEN",
+"ANZ_TITEL",
+"HAUSHALTSSTRUKTUR",
+"HH_EINKOMMEN_SCORE",
+"D19_KK_KUNDENTYP",
+"D19_KONSUMTYP",
+"D19_GESAMT_ANZ_12",
+"D19_GESAMT_ANZ_24",
+"D19_BANKEN_ANZ_12",
+"D19_BANKEN_ANZ_24",
+"D19_TELKO_ANZ_12",
+"D19_TELKO_ANZ_24",
+"D19_VERSI_ANZ_12",
+"D19_VERSI_ANZ_24",
+"D19_VERSAND_ANZ_12",
+"D19_VERSAND_ANZ_24",
+"D19_GESAMT_OFFLINE_DATUM",
+"D19_GESAMT_ONLINE_DATUM",
+"D19_GESAMT_DATUM",
+"D19_BANKEN_OFFLINE_DATUM",
+"D19_BANKEN_ONLINE_DATUM",
+"D19_BANKEN_DATUM",
+"D19_TELKO_OFFLINE_DATUM",
+"D19_TELKO_ONLINE_DATUM",
+"D19_TELKO_DATUM",
+"D19_VERSAND_OFFLINE_DATUM",
+"D19_VERSAND_ONLINE_DATUM",
+"D19_VERSAND_DATUM",
+"D19_VERSI_OFFLINE_DATUM",
+"D19_VERSI_ONLINE_DATUM",
+"D19_VERSI_DATUM",
+"D19_GESAMT_ONLINE_QUOTE_12",
+"D19_BANKEN_ONLINE_QUOTE_12",
+"D19_VERSAND_ONLINE_QUOTE_12",
+"W_KEIT_KIND_HH",
+"WOHNDAUER_2008",
+"ANZ_HAUSHALTE_AKTIV",
+"ANZ_HH_TITEL",
+"GEBAEUDETYP",
+"GEOSCORE_KLS7",
+"KBA05_HERSTTEMP",
+"KBA05_MODTEMP",
+"KONSUMNAEHE",
+"MIN_GEBAEUDEJAHR",
+"OST_WEST_KZ",
+"WOHNLAGE",
+"CAMEO_DEUG_2015",
+"CAMEO_DEU_2015",
+"CAMEO_INTL_2015",               #"CAMEO_DEUINTL_2015",
+"KBA05_ALTER1",
+"KBA05_ALTER2",
+"KBA05_ALTER3",
+"KBA05_ALTER4",
+"KBA05_ANHANG",
+"KBA05_ANTG1",
+"KBA05_ANTG2",
+"KBA05_ANTG3",
+"KBA05_ANTG4",
+"KBA05_AUTOQUOT",
+"KBA05_BAUMAX",
+"KBA05_CCM1",
+"KBA05_CCM2",
+"KBA05_CCM3",
+"KBA05_CCM4",
+"KBA05_DIESEL",
+"KBA05_FRAU",
+"KBA05_GBZ",
+"KBA05_HERST1",
+"KBA05_HERST2",
+"KBA05_HERST3",
+"KBA05_HERST4",
+"KBA05_HERST5",
+"KBA05_KRSAQUOT",
+"KBA05_KRSHERST1",
+"KBA05_KRSHERST2",
+"KBA05_KRSHERST3",
+"KBA05_KRSKLEIN",
+"KBA05_KRSOBER",
+"KBA05_KRSVAN",
+"KBA05_KRSZUL",
+"KBA05_KW1",
+"KBA05_KW2",
+"KBA05_KW3",
+"KBA05_MAXAH",
+"KBA05_MAXBJ",
+"KBA05_MAXHERST",
+"KBA05_MAXSEG",
+"KBA05_MAXVORB",
+"KBA05_MOD1",
+"KBA05_MOD2",
+"KBA05_MOD3",
+"KBA05_MOD4",
+"KBA05_MOD8",
+"KBA05_MOTOR",
+"KBA05_MOTRAD",
+"KBA05_SEG1",
+"KBA05_SEG2",
+"KBA05_SEG3",
+"KBA05_SEG4",
+"KBA05_SEG5",
+"KBA05_SEG6",
+"KBA05_SEG7",
+"KBA05_SEG8",
+"KBA05_SEG9",
+"KBA05_SEG10",
+"KBA05_VORB0",
+"KBA05_VORB1",
+"KBA05_VORB2",
+"KBA05_ZUL1",
+"KBA05_ZUL2",
+"KBA05_ZUL3",
+"KBA05_ZUL4",
+"WACHSTUMSGEBIET_NB",
+"D19_BANKEN_DIREKT",          # "D19_BANKEN_DIREKT_RZ",
+"D19_BANKEN_GROSS",           # "D19_BANKEN_GROSS_RZ",
+"D19_BANKEN_LOKAL",           # "D19_BANKEN_LOKAL_RZ",
+"D19_BANKEN_REST",            # "D19_BANKEN_REST_RZ",
+"D19_BEKLEIDUNG_GEH",         # "D19_BEKLEIDUNG_GEH_RZ",
+"D19_BEKLEIDUNG_REST",        # "D19_BEKLEIDUNG_REST_RZ",
+"D19_BIO_OEKO",               # "D19_BIO_OEKO_RZ",
+"D19_BILDUNG",                # "D19_BILDUNG_RZ",
+"D19_BUCH_CD",                # "D19_BUCH_RZ",
+"D19_DIGIT_SERV",             # "D19_DIGIT_SERV_RZ",
+"D19_DROGERIEARTIKEL",        # "D19_DROGERIEARTIKEL_RZ",
+"D19_ENERGIE",                # "D19_ENERGIE_RZ",
+"D19_FREIZEIT",               # "D19_FREIZEIT_RZ",
+"D19_GARTEN",                 # "D19_GARTEN_RZ",
+"D19_HANDWERK",               # "D19_HANDWERK_RZ",
+"D19_HAUS_DEKO",              # "D19_HAUS_DEKO_RZ",
+"D19_KINDERARTIKEL",          # "D19_KINDERARTIKEL_RZ",
+"D19_KOSMETIK",               # "D19_KOSMETIK_RZ",
+"D19_LEBENSMITTEL",           # "D19_LEBENSMITTEL_RZ",
+"D19_NAHRUNGSERGAENZUNG",     # "D19_NAHRUNGSERGAENZUNG_RZ",
+"D19_RATGEBER",               # "D19_RATGEBER_RZ",
+"D19_REISEN",                 # "D19_REISEN_RZ",
+"D19_SAMMELARTIKEL",          # "D19_SAMMELARTIKEL_RZ",
+"D19_SCHUHE",                 # "D19_SCHUHE_RZ",
+"D19_SONSTIGE",               # "D19_SONSTIGE_RZ",
+"D19_TECHNIK",                # "D19_TECHNIK_RZ",
+"D19_TELKO_MOBILE",           # "D19_TELKO_MOBILE_RZ",
+"D19_TELKO_REST",             # "D19_TELKO_REST_RZ",
+"D19_TIERARTIKEL",            # "D19_TIERARTIKEL_RZ",
+"D19_VERSICHERUNGEN",         # "D19_VERSICHERUNGEN_RZ",
+"D19_VOLLSORTIMENT",          # "D19_VOLLSORTIMENT_RZ",
+"D19_VERSAND_REST",           # "D19_VERSAND_REST_RZ",
+"D19_WEIN_FEINKOST",          # "D19_WEIN_FEINKOST_RZ",
+"BALLRAUM",
+"EWDICHTE",
+"INNENSTADT",
+"PLZ",
+"GEBAEUDETYP_RASTER",
+"KKK",
+"MOBI_REGIO",
+"ONLINE_AFFINITAET",
+"REGIOTYP",
+"KBA13_ALTERHALTER_30",
+"KBA13_ALTERHALTER_45",
+"KBA13_ALTERHALTER_60",
+"KBA13_ALTERHALTER_61",
+"KBA13_ANZAHL_PKW",
+"KBA13_AUDI",
+"KBA13_AUTOQUOTE",
+"KBA13_BJ_1999",
+"KBA13_BJ_2000",
+"KBA13_BJ_2004",
+"KBA13_BJ_2006",
+"KBA13_BJ_2008",
+"KBA13_BJ_2009",
+"KBA13_BMW",
+"KBA13_CCM_1000",
+"KBA13_CCM_1200",
+"KBA13_CCM_1400",
+"KBA13_CCM_0_1400",
+"KBA13_CCM_1500",
+"KBA13_CCM_1400_2500",
+"KBA13_CCM_1600",
+"KBA13_CCM_1800",
+"KBA13_CCM_2000",
+"KBA13_CCM_2500",
+"KBA13_CCM_2501",
+"KBA13_FAB_ASIEN",
+"KBA13_FAB_SONSTIGE",
+"KBA13_FIAT",
+"KBA13_FORD",
+"KBA13_HALTER_20",
+"KBA13_HALTER_25",
+"KBA13_HALTER_30",
+"KBA13_HALTER_35",
+"KBA13_HALTER_40",
+"KBA13_HALTER_45",
+"KBA13_HALTER_50",
+"KBA13_HALTER_55",
+"KBA13_HALTER_60",
+"KBA13_HALTER_65",
+"KBA13_HALTER_66",
+"KBA13_HERST_ASIEN",
+"KBA13_HERST_AUDI_VW",
+"KBA13_HERST_BMW_BENZ",
+"KBA13_HERST_EUROPA",
+"KBA13_HERST_FORD_OPEL",
+"KBA13_HERST_SONST",
+"KBA13_KMH_110",
+"KBA13_KMH_140",
+"KBA13_KMH_180",
+"KBA13_KMH_0_140",
+"KBA13_KMH_140_210",
+"KBA13_KMH_211",
+"KBA13_KMH_250",
+"KBA13_KMH_251",
+"KBA13_KRSAQUOT",
+"KBA13_KRSHERST_AUDI_VW",
+"KBA13_KRSHERST_BMW_BENZ",
+"KBA13_KRSHERST_FORD_OPEL",
+"KBA13_KRSSEG_KLEIN",
+"KBA13_KRSSEG_OBER",
+"KBA13_KRSSEG_VAN",
+"KBA13_KRSZUL_NEU",
+"KBA13_KW_30",
+"KBA13_KW_40",
+"KBA13_KW_50",
+"KBA13_KW_60",
+"KBA13_KW_0_60",
+"KBA13_KW_70",
+"KBA13_KW_61_120",
+"KBA13_KW_80",
+"KBA13_KW_90",
+"KBA13_KW_110",
+"KBA13_KW_120",
+"KBA13_KW_121",
+"KBA13_MAZDA",
+"KBA13_MERCEDES",
+"KBA13_MOTOR",
+"KBA13_NISSAN",
+"KBA13_OPEL",
+"KBA13_PEUGEOT",
+"KBA13_RENAULT",
+"KBA13_SEG_GELAENDEWAGEN",
+"KBA13_SEG_GROSSRAUMVANS",
+"KBA13_SEG_KLEINST",
+"KBA13_SEG_KLEINWAGEN",
+"KBA13_SEG_KOMPAKTKLASSE",
+"KBA13_SEG_MINIVANS",
+"KBA13_SEG_MINIWAGEN",
+"KBA13_SEG_MITTELKLASSE",
+"KBA13_SEG_OBEREMITTELKLASSE",
+"KBA13_SEG_OBERKLASSE",
+"KBA13_SEG_SONSTIGE",
+"KBA13_SEG_SPORTWAGEN",
+"KBA13_SEG_UTILITIES",
+"KBA13_SEG_VAN",
+"KBA13_SEG_WOHNMOBILE",
+"KBA13_SITZE_4",
+"KBA13_SITZE_5",
+"KBA13_SITZE_6",
+"KBA13_TOYOTA",
+"KBA13_VORB_0",
+"KBA13_VORB_1",
+"KBA13_VORB_1_2",
+"KBA13_VORB_2",
+"KBA13_VORB_3",
+"KBA13_VW",
+"PLZ8",
+"PLZ8_ANTG1",
+"PLZ8_ANTG2",
+"PLZ8_ANTG3",
+"PLZ8_ANTG4",
+"PLZ8_BAUMAX",
+"PLZ8_HHZ",
+"PLZ8_GBZ",
+"ARBEIT",
+"EINWOHNER",
+"GKZ",
+"ORTSGR_KLS9",
+"RELAT_AB"]
+
+# columns found in dataset but not in documentation : 
+# ALTERSKATEGORIE_FEIN       > Categorical
+# ANZ_KINDER                 > Numeric
+# ANZ_STATISTISCHE_HAUSHALTE > Numeric
+# CJT_KATALOGNUTZER          > Ordinal
+# CJT_TYP_1                  > Ordinal
+# CJT_TYP_2                  > Ordinal
+# CJT_TYP_3                  > Ordinal
+# CJT_TYP_4                  > Ordinal
+# CJT_TYP_5                  > Ordinal
+# CJT_TYP_6                  > Ordinal
+# D19_KONSUMTYP_MAX          > Categorical 
+# D19_LETZTER_KAUF_BRANCHE   > Categorical
+# D19_LOTTO                  > Ordinal
+# D19_SOZIALES               > Ordinal 
+# D19_TELKO_ONLINE_QUOTE_12  > Ordinal
+# D19_VERSI_ONLINE_QUOTE_12  > Ordinal
+# DSL_FLAG                   > Binary
+# EINGEFUEGT_AM              > Date
+# EINGEZOGENAM_HH_JAHR       > Numeric
+# EXTSEL992                  > Numeric
+# FIRMENDICHTE               > Ordinal
+# GEMEINDETYP                > Categorical 
+# HH_DELTA_FLAG              > Binary
+# KK_KUNDENTYP               > Categorical
+# KOMBIALTER                 > Ordinal
+# KONSUMZELLE                > Binary
+# MOBI_RASTER                > Ordinal
+# RT_KEIN_ANREIZ             > Ordinal
+# RT_SCHNAEPPCHEN            > Ordinal
+# RT_UEBERGROESSE            > Ordinal
+# STRUKTURTYP                > Categorical
+# UMFELD_ALT                 > Ordinal
+# UMFELD_JUNG                > Ordinal
+# UNGLEICHENN_FLAG           > Binary
+# VERDICHTUNGSRAUM           > Numeric
+# VHA                        > Ordinal
+# VHN                        > Ordinal                         
+# VK_DHT4A                   > Ordinal
+# VK_DISTANZ                 > Ordinal
+# VK_ZG11                    > Ordinal
+
+COLS_TO_IGNORE = ["LNR"] # Line number
+COLS_TO_IGNORE = COLS_TO_IGNORE + ["EINGEFUEGT_AM"] # not referenced in document, not sure of the information (timestamp ?)
+COLS_TO_IGNORE = COLS_TO_IGNORE + ["EINGEZOGENAM_HH_JAHR"] # not referenced + correlated with WOHNDAUER_2008
+COLS_TO_IGNORE = COLS_TO_IGNORE + ["ONLINE_PURCHASE", "CUSTOMER_GROUP", "PRODUCT_GROUP"] # customer data
+COLS_TO_IGNORE = COLS_TO_IGNORE + ["LP_LEBENSPHASE_FEIN", "LP_STATUS_FEIN", "LP_FAMILIE_FEIN", "ALTERSKATEGORIE_FEIN"]
+COLS_TO_IGNORE = COLS_TO_IGNORE + ["CAMEO_DEU_2015"]
+
+# table on value to understand as nan for each columns of the file
+COLS_NAN_VALUES  = {"AGER_TYP":[-1],"ALTER_HH":[0,9],"ALTERSKATEGORIE_GROB":[-1, 0, 9],"ANREDE_KZ":[-1, 0],
+    "BALLRAUM":[-1],"BIP_FLAG":[-1],"CAMEO_DEUG_2015":[-1],"CAMEO_INTL_2015":[-1],
+    "CJT_GESAMTTYP":[0],"D19_KK_KUNDENTYP":[-1],"EWDICHTE":[-1],"FINANZ_ANLEGER":[-1],
+    "FINANZ_HAUSBAUER":[-1],"FINANZ_MINIMALIST":[-1],"FINANZ_SPARER":[-1],"FINANZ_UNAUFFAELLIGER":[-1],
+    "FINANZ_VORSORGER":[-1],"FINANZTYP":[-1],"GEBAEUDETYP":[-1, 0],
+    "GEBURTSJAHR":[-190.0], "GEOSCORE_KLS7":[-1, 0],
+    "HAUSHALTSSTRUKTUR":[-1, 0],"HEALTH_TYP":[-1],"HH_EINKOMMEN_SCORE":[-1, 0],"INNENSTADT":[-1],
+    "KBA05_ALTER1":[-1, 9],"KBA05_ALTER2":[-1, 9],"KBA05_ALTER3":[-1, 9],"KBA05_ALTER4":[-1, 9],
+    "KBA05_ANHANG":[-1, 9],"KBA05_ANTG1":[-1],"KBA05_ANTG2":[-1],"KBA05_ANTG3":[-1],
+    "KBA05_ANTG4":[-1],"KBA05_BAUMAX":[-1, 0],"KBA05_CCM1":[-1, 9],"KBA05_CCM2":[-1, 9],
+    "KBA05_CCM3":[-1, 9],"KBA05_CCM4":[-1, 9],"KBA05_DIESEL":[-1, 9],"KBA05_FRAU":[-1, 9],
+    "KBA05_GBZ":[-1, 0],"KBA05_HERST1":[-1, 9],"KBA05_HERST2":[-1, 9],"KBA05_HERST3":[-1, 9],
+    "KBA05_HERST4":[-1, 9],"KBA05_HERST5":[-1, 9],"KBA05_HERSTTEMP":[-1, 9],"KBA05_KRSAQUOT":[-1, 9],
+    "KBA05_KRSHERST1":[-1, 9],"KBA05_KRSHERST2":[-1, 9],"KBA05_KRSHERST3":[-1, 9],"KBA05_KRSKLEIN":[-1, 9],
+    "KBA05_KRSOBER":[-1, 9],"KBA05_KRSVAN":[-1, 9],"KBA05_KRSZUL":[-1, 9],"KBA05_KW1":[-1, 9],
+    "KBA05_KW2":[-1, 9],"KBA05_KW3":[-1, 9],"KBA05_MAXAH":[-1, 9],"KBA05_MAXBJ":[-1, 9],
+    "KBA05_MAXHERST":[-1, 9],"KBA05_MAXSEG":[-1, 9],"KBA05_MAXVORB":[-1, 9],"KBA05_MOD1":[-1, 9],
+    "KBA05_MOD2":[-1, 9],"KBA05_MOD3":[-1, 9],"KBA05_MOD4":[-1, 9],"KBA05_MOD8":[-1, 9],
+    "KBA05_MODTEMP":[-1, 9],"KBA05_MOTOR":[-1, 9],"KBA05_MOTRAD":[-1, 9],"KBA05_SEG1":[-1, 9],
+    "KBA05_SEG10":[-1, 9],"KBA05_SEG2":[-1, 9],"KBA05_SEG3":[-1, 9],"KBA05_SEG4":[-1, 9],
+    "KBA05_SEG5":[-1, 9],"KBA05_SEG6":[-1, 9],"KBA05_SEG7":[-1, 9],"KBA05_SEG8":[-1, 9],
+    "KBA05_SEG9":[-1, 9],"KBA05_VORB0":[-1, 9],"KBA05_VORB1":[-1, 9],"KBA05_VORB2":[-1, 9],
+    "KBA05_ZUL1":[-1, 9],"KBA05_ZUL2":[-1, 9],"KBA05_ZUL3":[-1, 9],"KBA05_ZUL4":[-1, 9],
+    "KBA13_ALTERHALTER_30":[-1],"KBA13_ALTERHALTER_45":[-1],"KBA13_ALTERHALTER_60":[-1],"KBA13_ALTERHALTER_61":[-1],
+    "KBA13_AUDI":[-1],"KBA13_AUTOQUOTE":[-1],"KBA13_BJ_1999":[-1],"KBA13_BJ_2000":[-1],
+    "KBA13_BJ_2004":[-1],"KBA13_BJ_2006":[-1],"KBA13_BJ_2008":[-1],"KBA13_BJ_2009":[-1],
+    "KBA13_BMW":[-1],"KBA13_CCM_0_1400":[-1],"KBA13_CCM_1000":[-1],"KBA13_CCM_1200":[-1],
+    "KBA13_CCM_1400":[-1],"KBA13_CCM_1400_2500":[-1],"KBA13_CCM_1500":[-1],"KBA13_CCM_1600":[-1],
+    "KBA13_CCM_1800":[-1],"KBA13_CCM_2000":[-1],"KBA13_CCM_2500":[-1],"KBA13_CCM_2501":[-1],
+    "KBA13_CCM_3000":[-1],"KBA13_CCM_3001":[-1],"KBA13_FAB_ASIEN":[-1],"KBA13_FAB_SONSTIGE":[-1],
+    "KBA13_FIAT":[-1],"KBA13_FORD":[-1],"KBA13_HALTER_20":[-1],"KBA13_HALTER_25":[-1],
+    "KBA13_HALTER_30":[-1],"KBA13_HALTER_35":[-1],"KBA13_HALTER_40":[-1],"KBA13_HALTER_45":[-1],
+    "KBA13_HALTER_50":[-1],"KBA13_HALTER_55":[-1],"KBA13_HALTER_60":[-1],"KBA13_HALTER_65":[-1],
+    "KBA13_HALTER_66":[-1],"KBA13_HERST_ASIEN":[-1],"KBA13_HERST_AUDI_VW":[-1],"KBA13_HERST_BMW_BENZ":[-1],
+    "KBA13_HERST_EUROPA":[-1],"KBA13_HERST_FORD_OPEL":[-1],"KBA13_HERST_SONST":[-1],"KBA13_KMH_0_140":[-1],
+    "KBA13_KMH_110":[-1],"KBA13_KMH_140":[-1],"KBA13_KMH_140_210":[-1],"KBA13_KMH_180":[-1],
+    "KBA13_KMH_211":[-1],"KBA13_KMH_250":[-1],"KBA13_KMH_251":[-1],"KBA13_KRSAQUOT":[-1],
+    "KBA13_KRSHERST_AUDI_VW":[-1],"KBA13_KRSHERST_BMW_BENZ":[-1],"KBA13_KRSHERST_FORD_OPEL":[-1],"KBA13_KRSSEG_KLEIN":[-1],
+    "KBA13_KRSSEG_OBER":[-1],"KBA13_KRSSEG_VAN":[-1],"KBA13_KRSZUL_NEU":[-1],"KBA13_KW_0_60":[-1],
+    "KBA13_KW_110":[-1],"KBA13_KW_120":[-1],"KBA13_KW_121":[-1],"KBA13_KW_30":[-1],
+    "KBA13_KW_40":[-1],"KBA13_KW_50":[-1],"KBA13_KW_60":[-1],"KBA13_KW_61_120":[-1],
+    "KBA13_KW_70":[-1],"KBA13_KW_80":[-1],"KBA13_KW_90":[-1],"KBA13_MAZDA":[-1],
+    "KBA13_MERCEDES":[-1],"KBA13_MOTOR":[-1],"KBA13_NISSAN":[-1],"KBA13_OPEL":[-1],
+    "KBA13_PEUGEOT":[-1],"KBA13_RENAULT":[-1],"KBA13_SEG_GELAENDEWAGEN":[-1],"KBA13_SEG_GROSSRAUMVANS":[-1],
+    "KBA13_SEG_KLEINST":[-1],"KBA13_SEG_KLEINWAGEN":[-1],"KBA13_SEG_KOMPAKTKLASSE":[-1],"KBA13_SEG_MINIVANS":[-1],
+    "KBA13_SEG_MINIWAGEN":[-1],"KBA13_SEG_MITTELKLASSE":[-1],"KBA13_SEG_OBEREMITTELKLASSE":[-1],"KBA13_SEG_OBERKLASSE":[-1],
+    "KBA13_SEG_SONSTIGE":[-1],"KBA13_SEG_SPORTWAGEN":[-1],"KBA13_SEG_UTILITIES":[-1],"KBA13_SEG_VAN":[-1],
+    "KBA13_SEG_WOHNMOBILE":[-1],"KBA13_SITZE_4":[-1],"KBA13_SITZE_5":[-1],"KBA13_SITZE_6":[-1],
+    "KBA13_TOYOTA":[-1],"KBA13_VORB_0":[-1],"KBA13_VORB_1":[-1],"KBA13_VORB_1_2":[-1],
+    "KBA13_VORB_2":[-1],"KBA13_VORB_3":[-1],"KBA13_VW":[-1],"KKK":[-1, 0],
+    "NATIONALITAET_KZ":[-1, 0],"ORTSGR_KLS9":[-1],"OST_WEST_KZ":[-1],"PLZ8_ANTG1":[-1],
+    "PLZ8_ANTG2":[-1],"PLZ8_ANTG3":[-1],"PLZ8_ANTG4":[-1],"PLZ8_GBZ":[-1],
+    "PLZ8_HHZ":[-1],"PRAEGENDE_JUGENDJAHRE":[-1, 0],"REGIOTYP":[-1, 0],"RETOURTYP_BK_S":[0],
+    "SEMIO_DOM":[-1, 9],"SEMIO_ERL":[-1, 9],"SEMIO_FAM":[-1, 9],"SEMIO_KAEM":[-1, 9],
+    "SEMIO_KRIT":[-1, 9],"SEMIO_KULT":[-1, 9],"SEMIO_LUST":[-1, 9],"SEMIO_MAT":[-1, 9],
+    "SEMIO_PFLICHT":[-1, 9],"SEMIO_RAT":[-1, 9],"SEMIO_REL":[-1, 9],"SEMIO_SOZ":[-1, 9],
+    "SEMIO_TRADV":[-1, 9],"SEMIO_VERT":[-1, 9],"SHOPPER_TYP":[-1],"SOHO_FLAG":[-1],
+    "TITEL_KZ":[-1, 0],"VERS_TYP":[-1],"W_KEIT_KIND_HH":[-1, 0],"WACHSTUMSGEBIET_NB":[-1, 0],
+    "WOHNDAUER_2008":[-1, 0],"WOHNLAGE":[-1],"ZABEOTYP":[-1, 9], 
+    "KONSUMNAEHE":[0],"LP_FAMILIE_FEIN":[0],"LP_FAMILIE_GROB":[0],"LP_LEBENSPHASE_FEIN":[0],
+    "LP_LEBENSPHASE_GROB":[0],"LP_STATUS_FEIN":[0],"LP_STATUS_GROB":[0],"MOBI_REGIO":[0],"PLZ8_BAUMAX":[0],
+    "RELAT_AB":[0], "D19_BANKEN_DATUM":[0],"D19_BANKEN_OFFLINE_DATUM":[0],"D19_BANKEN_OFFLINE_DATUM":[0],
+    "D19_GESAMT_DATUM":[0],"D19_GESAMT_OFFLINE_DATUM":[0],"D19_GESAMT_ONLINE_DATUM":[0],"D19_KONSUMTYP":[0],
+    "D19_TELKO_DATUM":[0],"D19_TELKO_OFFLINE_DATUM":[0],"D19_TELKO_ONLINE_DATUM":[0],
+    "D19_VERSAND_DATUM":[0],"D19_VERSAND_OFFLINE_DATUM":[0],"D19_VERSAND_OFFLINE_DATUM":[0],
+    "GEBAEUDETYP_RASTER":[0], "GFK_URLAUBERTYP":[0],
+    "KOMBIALTER":[9]
+}
+
+# ok values for each columns, non-ok will be treated as nan
+COLS_OK_VALUES  = {
+    "ANZ_HH_TITEL":[0,1,2,3,4,5,6,7,8,9,10],
+    "ANZ_PERSONEN":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+    "CAMEO_DEUG_2015":[1,2,3,4,5,6,7,8,9,10],
+    "ANZ_STATISTISCHE_HAUSHALTE":[str(i+1) for i in range(40)],
+    "ANZ_HAUSHALTE_AKTIV":[str(i+1) for i in range(40)],
+}
+
+# columns that will be copied (i.e. mixed columns copy and each colmuns will we a diffrent map applied) 
+COLS_TO_COPY = {
+    "CAMEO_INTL_2015":"CAMEO_INTL_2015_2",
+    "PRAEGENDE_JUGENDJAHRE":"PRAEGENDE_JUGENDJAHRE_2",
+    "KBA13_BAUMAX":"KBA13_BAUMAX_BUSINESS",
+    "PLZ8_BAUMAX":"PLZ8_BAUMAX_BUSINESS",
+#     "D19_SOZIALES":"D19_SOZIALES_TYP",
+}
+
+# columns where we will apply a mapping
+COLS_MAP_VALUES = {
+    "CAMEO_INTL_2015":{11:1,12:1,13:1,14:1,15:1,21:3,22:3,23:3,24:3,25:3,
+                          31:5,32:5,33:5,34:5,35:5,41:7,42:7,43:7,44:7,45:7,
+                          51:9,52:9,53:9,54:9,55:9},
+    "CAMEO_INTL_2015_2":{11:1,12:2,13:3,14:4,15:5,21:1,22:2,23:3,24:4,25:5,
+                          31:1,32:2,33:3,34:4,35:5,41:1,42:2,43:3,44:4,45:5,
+                          51:1,52:2,53:3,54:4,55:5},
+    "PRAEGENDE_JUGENDJAHRE_2":{1:2,2:1,3:2,4:1,5:2,6:1,7:1,8:2,9:1,10:2,11:1,12:2,13:1,14:2,15:1},
+    "PRAEGENDE_JUGENDJAHRE":{1:4,2:4,3:5,4:5,5:6,6:6,7:6,8:7,9:7,10:8,11:7,12:8,13:8,14:9,15:9},
+    "KOMBIALTER":{4:4.5,3:6.5,2:8,1:9.5},
+    "ALTERSKATEGORIE_GROB":{1:8.5,2:7.5,3:6.5,4:5.0},
+    "ALTER_HH":{1:0,2:0,3:0,4:1,5:1,6:2,7:2,8:3,9:3,10:4,11:4,12:5,13:5,14:6,15:6,16:7,17:7,18:8,19:8,20:9,21:9},
+    "KBA13_BAUMAX":{1:1,2:2,3:3,4:4,5:0},
+    "KBA13_BAUMAX_BUSINESS":{1:0,2:0,3:0,4:0,5:1},
+    "PLZ8_BAUMAX":{1:1,2:2,3:3,4:4,5:0},
+    "PLZ8_BAUMAX_BUSINESS":{1:0,2:0,3:0,4:0,5:1},
+    "KBA05_KRSZUL":{1:1,2:3,3:5},
+    "EWDICHTE":{1:1.55,2:3,3:5,4:6.5,5:8,6:10},
+    "KBA05_KRSKLEIN":{1:1,2:3,3:5},
+    "D19_VERSI_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0}, 
+    "D19_TELKO_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_TELKO_ONLINE_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_VERSAND_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0}, 
+    "D19_VERSAND_ONLINE_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_GESAMT_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_GESAMT_ONLINE_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_BANKEN_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "D19_BANKEN_ONLINE_DATUM":{1:6,2:5.3,3:4.7,4:4,5:3.3,6:2.7,7:2,8:1.3,9:0.7,10:0},
+    "FINANZ_VORSORGER":{1:5,2:4,3:3,4:2,5:1},
+    "ANZ_PERSONEN":{1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,
+                    11:10,12:10,13:10,14:10,15:10,16:10,17:10,18:10,19:10,20:10}, 
+    "D19_BANKEN_DIREKT":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BANKEN_GROSS":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BANKEN_LOKAL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BANKEN_REST":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BEKLEIDUNG_GEH":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BEKLEIDUNG_REST":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BILDUNG":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BIO_OEKO":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_BUCH":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_DIGIT_SERV":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_DROGERIEARTIKEL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_ENERGIE":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_FREIZEIT":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_GARTEN":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_HANDWERK":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_HAUS_DEKO":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_KINDERARTIKEL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_KOSMETIK":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_LEBENSMITTEL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_LOTTO":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_NAHRUNGSERGAENZUNG":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_RATGEBER":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_REISEN":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_SAMMELARTIKEL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_SCHUHE":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_SONSTIGE":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_TECHNIK":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_TELKO_MOBILE":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_TELKO_REST":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_TIERARTIKEL":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_VERSAND_REST":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_VERSICHERUNGEN":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_VOLLSORTIMENT":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+    "D19_WEIN_FEINKOST":{0:0,1:7,2:6,3:5,4:4,5:3,6:2,7:1},
+}
+
+# columns that will be trated as categorical
+COLS_CAT = ["D19_KONSUMTYP","D19_LETZTER_KAUF_BRANCHE", "HAUSHALTSSTRUKTUR",
+            "AGER_TYP", "ANREDE_KZ", "CJT_GESAMTTYP", "FINANZTYP", "GFK_URLAUBERTYP", "HEALTH_TYP",
+            "LP_LEBENSPHASE_FEIN", "LP_LEBENSPHASE_GROB", "LP_FAMILIE_FEIN", 
+            "LP_STATUS_FEIN", "LP_STATUS_GROB", "NATIONALITAET_KZ", 
+            "PRAEGENDE_JUGENDJAHRE_2",
+            "SHOPPER_TYP", "TITEL_KZ", "VERS_TYP", "ZABEOTYP","GEBAEUDETYP","KK_KUNDENTYP",
+            "OST_WEST_KZ", "WOHNLAGE","GEMEINDETYP","STRUKTURTYP","D19_KONSUMTYP_MAX",
+            "GEBAEUDETYP","GEBAEUDETYP_RASTER",
+            "D19_SOZIALES"]
+
+# columns to add up 
+COLS_TO_ADDUP = {
+    "@GEBURTSJAHR_MOD" :["PRAEGENDE_JUGENDJAHRE", "GEBURTSJAHR", "KOMBIALTER", "ALTERSKATEGORIE_GROB"],
+
+    "@ANZ_HAUSHALTE":["ANZ_STATISTISCHE_HAUSHALTE","ANZ_HAUSHALTE_AKTIV"],
+    "@CAMEO_2015":["CAMEO_DEUG_2015", "CAMEO_INTL_2015"],
+    "@CJT_TYP_1_2": ["CJT_TYP_1", "CJT_TYP_2"],
+    "@CJT_TYP_3_4_5": ["CJT_TYP_3", "CJT_TYP_4", "CJT_TYP_5"],
+
+    "@HHZ_GBZ_PKW":["PLZ8_HHZ", "KBA13_HHZ", "PLZ8_GBZ", "KBA13_GBZ", "KBA13_ANZAHL_PKW"],
+    "@VK_DHT4A_DISTANZ_ZG11" :["VK_DHT4A","VK_DISTANZ","VK_ZG11"],
+    "@ORTSGR_KLS9_EWDICHTE" :["ORTSGR_KLS9","EWDICHTE"],
+    "@ANTG1":["PLZ8_ANTG1", "KBA13_ANTG1"], #, "KBA05_ANTG1"
+    "@ANTG2":["PLZ8_ANTG2", "KBA13_ANTG2"],
+    "@ANTG3_4":["PLZ8_ANTG3", "KBA13_ANTG3",
+               "PLZ8_ANTG4", "KBA13_ANTG4"],
+    "@BAUMAX":["PLZ8_BAUMAX", "KBA13_BAUMAX"],
+    "@BAUMAX_BUSINESS":["PLZ8_BAUMAX_BUSINESS", "KBA13_BAUMAX_BUSINESS"],
+  
+    "@D19_BANKEN":["D19_BANKEN_ANZ_12","D19_BANKEN_ANZ_24","D19_BANKEN_DATUM",
+                  "D19_BANKEN_ONLINE_DATUM","D19_BANKEN_ONLINE_QUOTE_12"],
+    "@D19_GESAMT_VERSAND":["D19_GESAMT_ANZ_12","D19_GESAMT_ANZ_24", "D19_GESAMT_DATUM", "D19_GESAMT_ONLINE_DATUM",
+                          "D19_VERSAND_ANZ_12","D19_VERSAND_ANZ_24", "D19_VERSAND_DATUM", "D19_VERSAND_ONLINE_DATUM",
+                          "D19_VERSAND_ONLINE_QUOTE_12","D19_GESAMT_ONLINE_QUOTE_12"],
+    "@D19_GESAMT_VERSAND_OFFLINE":["D19_GESAMT_OFFLINE_DATUM","D19_VERSAND_OFFLINE_DATUM"],
+    "@D19_TELKO":["D19_TELKO_ANZ_24","D19_TELKO_DATUM", "D19_TELKO_ANZ_12"],
+    "@D19_TELKO_ONLINE":["D19_TELKO_ONLINE_DATUM","D19_TELKO_ONLINE_QUOTE_12"],
+    "@D19_VERSI": ["D19_VERSI_ANZ_12","D19_VERSI_ANZ_24", "D19_VERSI_DATUM", "D19_VERSI_ONLINE_QUOTE_12"],
+
+    "@FINANZ_SPARER_notVORSORGER" :["FINANZ_SPARER", "FINANZ_VORSORGER"],
+    "@HALTER_66": ["KBA13_HALTER_66", "KBA13_ALTERHALTER_61"],
+    "@HALTER_55": ["KBA13_HALTER_55", "KBA13_HALTER_50", "KBA13_ALTERHALTER_60"],
+    "@HALTER_40": ["KBA13_HALTER_40", "KBA13_ALTERHALTER_45"],
+    "@HALTER_30": ["KBA13_HALTER_25", "KBA13_HALTER_30", "KBA13_ALTERHALTER_30"],
+    "@ANZ_PERSONEN_LP_FAMILIE_GROB":["ANZ_PERSONEN", "LP_FAMILIE_GROB"],
+    
+    "@KBA13_HERST_FAB_SONST":["KBA13_HERST_SONST", "KBA13_FAB_SONSTIGE"],
+    "@KBA05_SEG9_MOD8_VANS":["KBA05_SEG9","KBA05_MOD8"],
+    "@KBA05_ZUL_KRS_4":["KBA05_KRSZUL", "KBA05_ZUL4"],
+    "@KBA05_HERST_KRS_3":["KBA05_HERST3","KBA05_KRSHERST3"],
+    "@KBA05_HERST_KRS_2":["KBA05_HERST2","KBA05_KRSHERST2"],
+    "@KBA05_HERST_KRS_1":["KBA05_HERST1","KBA05_KRSHERST1"],
+    "@KBA13_AUDI_VW":["KBA13_VW","KBA13_HERST_AUDI_VW"],
+    "@KBA13_BMW_BENZ_MERCEDES":["KBA13_HERST_BMW_BENZ","KBA13_MERCEDES"],
+    "@KBA13_FORD_OPEL":["KBA13_OPEL","KBA13_HERST_FORD_OPEL","KBA13_KRSHERST_FORD_OPEL"],
+    "@KBA13_SEG_ALL_VANS":["KBA13_KRSSEG_VAN","KBA13_SEG_GROSSRAUMVANS","KBA13_SEG_VAN","KBA13_SEG_MINIVANS"],
+    "@KBA05_OBER":["KBA05_KRSOBER","KBA05_SEG5"],
+    "@KBA05_ALL_KLEIN":["KBA05_KRSKLEIN","KBA05_SEG2"],
+    "@KBA05_ALL_KLEINEST":["KBA13_SEG_KLEINWAGEN","KBA13_SEG_KLEINST"],
+    "@KBA05_KW1_KW2":["KBA05_KW1","KBA05_KW2"],
+    "@KBA13_KW_0_120":["KBA13_KW_0_60","KBA13_KW_61_120"],
+    "@KBA13_KW_30_KMH_110":["KBA13_KW_30","KBA13_KMH_110"],
+    "@KBA13_KMH_0_140_140":["KBA13_KMH_140","KBA13_KMH_0_140"],
+    "@KBA13_KMH_211_250":["KBA13_KMH_211", "KBA13_KMH_250"],
+    "@KBA13_VORB_1_BJ_2004_2006":["KBA13_VORB_1","KBA13_BJ_2004","KBA13_BJ_2006"],
+    "@KBA13_VORB_2_BJ_1999_2000":["KBA13_VORB_2","KBA13_BJ_2000","KBA13_BJ_1999"],
+    "@KBA13_VORB_2_BJ_1999_2000":["KBA13_VORB_2","KBA13_BJ_2000","KBA13_BJ_1999"],
+    "@KBA05_AUTOQUOTE_KRSAQUOT":["KBA05_AUTOQUOT","KBA05_KRSAQUOT"],
+}
+
+# columns highly correlated with another that we will drop at the end 
+COLS_TO_DROP_LAST = [
+    "PRAEGENDE_JUGENDJAHRE_2$1.0","PRAEGENDE_JUGENDJAHRE_2$2.0",
+    "ALTER_HH",
+    "KBA13_SITZE_5", "KBA13_SITZE_6",
+    "OST_WEST_KZ$O",
+    "ANREDE_KZ$2.0", 
+    "VERS_TYP$2.0", 
+    "EINGEZOGENAM_HH_JAHR"
+]
+
+def data_preparation(df):
+    
+    print(df.shape)
+
+#     # ignored columns to drop
+    print("drop")
+    for c in COLS_TO_IGNORE: 
+        print(".", end="")
+        if c in df.columns: df.drop(columns=[c], inplace=True)
+    print("!", df.shape)
+
+    # *** special corrections ***
+    print("correct")
+    for c in ["CAMEO_INTL_2015","CAMEO_DEUG_2015", "CAMEO_DEU_2015"]:
+        print(".", end="")
+        if c in df.columns: df.loc[df[c].isin(["X","XX"]), c] = np.nan
+    for c in ["CAMEO_INTL_2015","CAMEO_DEUG_2015"]:
+        print(".", end="")
+        if c in df.columns: df[c] = df[c].astype("float64")
+    c = "KBA13_ANZAHL_PKW"
+    print(".", end="")
+    if c in df.columns: df[c] = df[c]/1400*4+1
+    c = "GEBURTSJAHR"
+    print(".", end="")
+    if c in df.columns: 
+        df[c] = (df[c]-1900)/10
+    for c in  ["ALTER_KIND1", "ALTER_KIND2", "ALTER_KIND3", "ALTER_KIND4"]: 
+        print(".", end="")
+        if c in df.columns: 
+            df[c] = (df[c]/df[c]).fillna(0.0)
+    print("!", df.shape)
+           
+    # replace non-ok values by nan 
+    print("correct values")
+    for c in COLS_OK_VALUES:
+        print(".", end="")
+        ok_values = list(COLS_OK_VALUES[c])  
+        if c in df.columns:
+            mask = np.logical_not(df[c].isin(ok_values))
+            df.loc[mask, c] = np.nan
+    print("!", df.shape)
+
+    # generate nan values
+    print("convert nan values to nan")
+    for c in COLS_NAN_VALUES:
+        print(".", end="")
+        nan_if_list = list(COLS_NAN_VALUES[c])
+        if c in df.columns:
+            for nav in nan_if_list:
+                mask = (df[c]==nav)
+                df.loc[mask, c] = np.nan
+    print("!", df.shape)
+
+    #duplicate if needed 
+    print("duplicate")
+    for c in COLS_TO_COPY:
+        print(".", end="")
+        if c in df.columns:
+            df[COLS_TO_COPY[c]] = df[c]
+    print("!", df.shape)
+
+    # map values for mixed cat
+    print("map")
+    for c in COLS_MAP_VALUES:
+        print(".", end="")
+        if c in df.columns:
+            df[c] = df[c].map(COLS_MAP_VALUES[c])
+    print("!", df.shape)
+
+    #one-hot encode cat value
+    print("cat encoding")
+    for c in COLS_CAT:
+        print(".", end="")
+        if c in df.columns:
+            dum = pd.get_dummies(df[c], prefix=c, prefix_sep="$")
+            df = pd.concat([df, dum], axis=1);            
+            df = df.drop(columns=[c])
+    print("!", df.shape)
+
+    #cols aggregation
+    print("combine features")
+    for agg in COLS_TO_ADDUP.keys():
+        print(".",end="")
+        for i,c in enumerate(COLS_TO_ADDUP[agg]):
+            if c in df.columns:
+                if i == 0 :
+                    df[agg] = df[c]
+                else:
+                    mask = np.logical_not(df[c].isna())
+                    df.loc[mask, agg] = (df.loc[mask, agg].fillna(df.loc[mask, c]) * (i-1) + df.loc[mask, c])/i
+                df = df.drop(columns=[c])
+    print("!", df.shape)
+     
+    # columns to drop at he end
+    print("drop")
+    for c in COLS_TO_DROP_LAST: 
+        print(".",end="")
+        if c in df.columns: df.drop(columns=[c], inplace=True)
+    print("!", df.shape)
+
+    return df
